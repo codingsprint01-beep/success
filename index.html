@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>성장 대시보드</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a2e; /* Dark background */
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+        }
+        .container {
+            background-color: #2a2a4a; /* Darker card background */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border-radius: 2rem;
+        }
+        .card {
+            background-color: #3b3b5b;
+            border-radius: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, #6a82fb, #fc5c7d);
+            transition: all 0.3s ease-in-out;
+        }
+        .btn-primary:hover {
+            box-shadow: 0 5px 15px rgba(106, 130, 251, 0.4);
+        }
+        .exp-bar {
+            height: 12px;
+            background-color: #4a4a6e;
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+        .exp-fill {
+            background: linear-gradient(90deg, #6a82fb, #8d70ff);
+            transition: width 0.5s ease-in-out;
+        }
+        .tab-button {
+            transition: color 0.2s, border-bottom 0.2s;
+        }
+        .tab-button.active {
+            color: #8d70ff;
+            border-bottom: 2px solid #8d70ff;
+        }
+        .progress-circle {
+            position: relative;
+            width: 100px;
+            height: 100px;
+        }
+        .progress-circle-bg {
+            stroke: #4a4a6e;
+            stroke-width: 8;
+            fill: none;
+        }
+        .progress-circle-fill {
+            stroke: #fc5c7d;
+            stroke-width: 8;
+            fill: none;
+            stroke-linecap: round;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+            transition: stroke-dashoffset 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-4xl mx-auto space-y-8 container p-6 md:p-10">
+
+        <!-- Header Section -->
+        <header class="flex items-center justify-between pb-6 border-b border-gray-700">
+            <div class="flex items-center space-x-4">
+                <div class="bg-gray-800 p-3 rounded-xl">
+                    <i class="fas fa-gamepad text-2xl text-purple-400"></i>
+                </div>
+                <h1 class="text-3xl font-extrabold text-white">성장 대시보드</h1>
+            </div>
+            <div id="userIdDisplay" class="text-sm text-gray-400">ID: 로그인 중...</div>
+        </header>
+
+        <!-- Profile and Stats Section -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="card p-6">
+                <div class="flex items-center space-x-4 mb-4">
+                    <i class="fas fa-user-circle text-3xl text-blue-400"></i>
+                    <h2 class="text-xl font-semibold text-white">캐릭터 프로필</h2>
+                </div>
+                <div class="flex flex-col items-center space-y-4">
+                    <div class="relative w-24 h-24 rounded-full overflow-hidden bg-gray-700 flex items-center justify-center">
+                        <img id="character-image" src="" alt="캐릭터 이미지" class="w-full h-full object-cover rounded-full" style="display: none;">
+                        <div id="image-loading-spinner" class="spinner-border text-gray-500" role="status" style="display: block;">
+                            <i class="fas fa-sync-alt fa-spin text-2xl"></i>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-2xl font-bold text-white">박민재</p>
+                        <p id="job-title-text" class="text-md text-gray-400">트레이더</p>
+                    </div>
+                </div>
+                <div class="mt-6">
+                    <p class="text-sm font-medium text-gray-400">레벨 <span id="level-text" class="text-white font-bold text-lg ml-2">1</span></p>
+                    <div class="exp-bar mt-2">
+                        <div id="exp-bar-fill" class="exp-fill h-full" style="width: 0%;"></div>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-1"><span id="exp-text">0 / 100</span> EXP</p>
+                </div>
+            </div>
+
+            <div class="card p-6">
+                <div class="flex items-center space-x-4 mb-4">
+                    <i class="fas fa-chart-line text-3xl text-pink-400"></i>
+                    <h2 class="text-xl font-semibold text-white">성과 및 스탯</h2>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-4">
+                        <div class="space-y-1">
+                            <p class="text-sm text-gray-400">재력</p>
+                            <div class="exp-bar"><div id="stat-wealth-fill" class="exp-fill" style="width: 0%;"></div></div>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-sm text-gray-400">외모</p>
+                            <div class="exp-bar"><div id="stat-appearance-fill" class="exp-fill" style="width: 0%;"></div></div>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-sm text-gray-400">매력</p>
+                            <div class="exp-bar"><div id="stat-charm-fill" class="exp-fill" style="width: 0%;"></div></div>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-sm text-gray-400">인맥</p>
+                            <div class="exp-bar"><div id="stat-connections-fill" class="exp-fill" style="width: 0%;"></div></div>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-sm text-gray-400">지위</p>
+                            <div class="exp-bar"><div id="stat-status-fill" class="exp-fill" style="width: 0%;"></div></div>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-center">
+                        <div class="progress-circle">
+                            <svg class="progress-circle" viewBox="0 0 36 36">
+                                <path class="progress-circle-bg" d="M18 2.0845
+                                      a 15.9155 15.9155 0 0 1 0 31.831
+                                      a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path id="performance-circle-fill" class="progress-circle-fill" d="M18 2.0845
+                                      a 15.9155 15.9155 0 0 1 0 31.831
+                                      a 15.9155 15.9155 0 0 1 0 -31.831" stroke-dasharray="0, 100" />
+                            </svg>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <span id="performance-text" class="text-2xl font-bold text-white">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quest Section -->
+        <div class="card p-6">
+            <div class="flex items-center space-x-4 mb-4">
+                <i class="fas fa-scroll text-3xl text-yellow-400"></i>
+                <h2 class="text-xl font-semibold text-white">나의 퀘스트</h2>
+            </div>
+            
+            <div class="flex overflow-x-auto space-x-2 pb-2 mb-4 border-b border-gray-700">
+                <button class="tab-button py-2 px-4 text-gray-400 font-medium whitespace-nowrap active" onclick="showQuests('daily')">일일 퀘스트</button>
+                <button class="tab-button py-2 px-4 text-gray-400 font-medium whitespace-nowrap" onclick="showQuests('year2025')">2025년 퀘스트</button>
+                <button class="tab-button py-2 px-4 text-gray-400 font-medium whitespace-nowrap" onclick="showQuests('year2026')">2026년 퀘스트</button>
+                <button class="tab-button py-2 px-4 text-gray-400 font-medium whitespace-nowrap" onclick="showQuests('year2027')">2027년 퀘스트</button>
+                <button class="tab-button py-2 px-4 text-gray-400 font-medium whitespace-nowrap" onclick="showQuests('year2028')">2028년 퀘스트</button>
+                <button class="tab-button py-2 px-4 text-gray-400 font-medium whitespace-nowrap" onclick="showQuests('year2029')">2029년 퀘스트</button>
+                <button class="tab-button py-2 px-4 text-gray-400 font-medium whitespace-nowrap" onclick="showQuests('year2030')">2030년 퀘스트</button>
+            </div>
+            
+            <div id="quest-list" class="space-y-4">
+                <!-- 퀘스트가 여기에 동적으로 로드됩니다 -->
+            </div>
+        </div>
+
+        <!-- Achievements and Skills Section -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="card p-6">
+                <div class="flex items-center space-x-4 mb-4">
+                    <i class="fas fa-trophy text-3xl text-yellow-500"></i>
+                    <h2 class="text-xl font-semibold text-white">나의 업적</h2>
+                </div>
+                <div id="achievement-list" class="grid grid-cols-2 gap-4">
+                    <!-- 업적이 여기에 동적으로 로드됩니다 -->
+                </div>
+            </div>
+            <div class="card p-6">
+                <div class="flex items-center space-x-4 mb-4">
+                    <i class="fas fa-tree text-3xl text-green-500"></i>
+                    <h2 class="text-xl font-semibold text-white">나의 스킬 트리</h2>
+                </div>
+                <div id="skill-tree-list" class="space-y-4">
+                    <!-- 스킬이 여기에 동적으로 로드됩니다 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal (Popup) for Level Up -->
+        <div id="modal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center p-4">
+            <div class="bg-gray-800 p-8 rounded-2xl max-w-sm w-full text-center shadow-2xl">
+                <h3 class="text-3xl font-bold text-green-400 mb-4">🎉 레벨업! 🎉</h3>
+                <p class="text-gray-300 mb-6">축하합니다! 새로운 레벨에 도달했습니다!</p>
+                <button onclick="closeModal()" class="btn-primary text-white px-6 py-2 rounded-xl font-bold">확인</button>
+            </div>
+        </div>
+
+    </div>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        // 전역 변수
+        let currentExp = 0;
+        let currentLevel = 1;
+        const expToNextLevel = 100;
+        let questsCompleted = {};
+        let achievements = {};
+        let stats = { wealth: 0, appearance: 0, charm: 0, connections: 0, status: 0 };
+        let skills = {};
+        let performanceRate = 0;
+
+        let db;
+        let auth;
+        let userId;
+        const app_id = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+
+        // 스킬 데이터 (JavaScript 객체로 관리)
+        const skillData = [
+            { id: 'coin-trading-analysis', name: '코인 트레이딩 기술적 분석', baseValue: 0, relatedStats: { wealth: 0.5, charm: 0.1 } },
+            { id: 'stock-trading-analysis', name: '주식 매매 기법 및 기본적 분석', baseValue: 0, relatedStats: { wealth: 0.5, charm: 0.1 } },
+            { id: 'cooking', name: '요리', baseValue: 0, relatedStats: { charm: 0.6 } },
+            { id: 'english', name: '영어', baseValue: 0, relatedStats: { connections: 0.4, status: 0.3 } },
+            { id: 'japanese', name: '일본어', baseValue: 0, relatedStats: { connections: 0.4, status: 0.3 } },
+            { id: 'appearance', name: '외모', baseValue: 0, relatedStats: { appearance: 1.0 } },
+            { id: 'psychology', name: '심리학', baseValue: 0, relatedStats: { charm: 0.5, connections: 0.5 } }
+        ];
+
+        // 퀘스트 데이터 (JavaScript 객체로 관리)
+        const questData = {
+            daily: [
+                { id: 'daily-0', title: '녹화본 복기', exp: 10, stats: { wealth: 5, charm: 2 }, performance: 3, skills: { 'coin-trading-analysis': 5, 'stock-trading-analysis': 5 } },
+                { id: 'daily-1', title: '매매 일지 작성', exp: 15, stats: { wealth: 10 }, performance: 5, skills: { 'coin-trading-analysis': 10, 'stock-trading-analysis': 10 } },
+                { id: 'daily-2', title: '일일 수익 10만원 달성', exp: 50, stats: { wealth: 20 }, performance: 20, skills: { 'coin-trading-analysis': 20, 'stock-trading-analysis': 20 } }
+            ],
+            year2025: [
+                { id: 'year2025-0', title: '일일 수익 10만원 지속 달성', exp: 200, stats: { wealth: 30 }, performance: 15, targetLevel: 30, skills: { 'coin-trading-analysis': 30, 'stock-trading-analysis': 30 } },
+                { id: 'year2025-1', title: '몸무게 68kg 달성', exp: 20, stats: { appearance: 10 }, performance: 5, skills: { 'appearance': 10 } }
+            ],
+            year2026: [
+                { id: 'year2026-0', title: '코 성형', exp: 300, stats: { appearance: 20 }, performance: 10, skills: { 'appearance': 20 } },
+                { id: 'year2026-1', title: '사업 확장', exp: 500, stats: { wealth: 50, status: 50 }, performance: 30 },
+                { id: 'year2026-2', title: '일일 수익 100만원 지속 달성', exp: 400, stats: { wealth: 40 }, performance: 25, targetLevel: 100, skills: { 'coin-trading-analysis': 40, 'stock-trading-analysis': 40 } },
+                { id: 'year2026-3', title: '몸무게 73kg 달성', exp: 100, stats: { appearance: 10 }, performance: 5, skills: { 'appearance': 10 } },
+                { id: 'year2026-4', title: '제빵 배우기', exp: 100, stats: { charm: 10 }, performance: 5, skills: { 'cooking': 10 } },
+                { id: 'year2026-5', title: '디저트 배우기', exp: 100, stats: { charm: 10 }, performance: 5, skills: { 'cooking': 10 } }
+            ],
+            year2027: [
+                { id: 'year2027-0', title: '일일 수익 1천만원 지속 달성', exp: 1000, stats: { wealth: 50 }, performance: 50, targetLevel: 300, skills: { 'coin-trading-analysis': 50, 'stock-trading-analysis': 50 } },
+                { id: 'year2027-1', title: '몸무게 75kg 달성', exp: 150, stats: { appearance: 15 }, performance: 5, skills: { 'appearance': 15 } },
+                { id: 'year2027-2', title: '자가 주택(40평 이상) 구매', exp: 2000, stats: { wealth: 100 }, performance: 60 },
+                { id: 'year2027-3', title: '개인 차량(BMW) 구매', exp: 1500, stats: { wealth: 50 }, performance: 40 },
+                { id: 'year2027-4', title: '호신술 배우기', exp: 100, stats: { charm: 5 }, performance: 5 },
+                { id: 'year2027-5', title: '일식 배우기', exp: 150, stats: { charm: 15 }, performance: 5, skills: { 'cooking': 15 } },
+                { id: 'year2027-6', title: '한식 배우기', exp: 150, stats: { charm: 15 }, performance: 5, skills: { 'cooking': 15 } },
+                { id: 'year2027-7', title: '중식 배우기', exp: 150, stats: { charm: 15 }, performance: 5, skills: { 'cooking': 15 } }
+            ],
+            year2028: [
+                { id: 'year2028-0', title: '일일 수익 5천만원 ~ 1억원 지속 달성', exp: 5000, stats: { wealth: 100 }, performance: 70, targetLevel: 500, skills: { 'coin-trading-analysis': 50, 'stock-trading-analysis': 50 } },
+                { id: 'year2028-1', title: '연예계 접점 만들기', exp: 2000, stats: { connections: 50, charm: 30 }, performance: 30 }
+            ],
+            year2029: [
+                { id: 'year2029-0', title: '일일 수익 1억원 이상 지속 달성', exp: 10000, stats: { wealth: 100 }, performance: 100, targetLevel: 800, skills: { 'coin-trading-analysis': 50, 'stock-trading-analysis': 50 } },
+                { id: 'year2029-1', title: '내가 사랑하는 여배우와 만나기', exp: 5000, stats: { charm: 100, connections: 50 }, performance: 50 },
+                { id: 'year2029-2', title: '부모님과 동생 자가 주택 선물하기', exp: 7000, stats: { wealth: 100 }, performance: 70 }
+            ],
+            year2030: [
+                { id: 'year2030-0', title: '일일 수익 1억원 이상 지속 달성 및 나의 순자산 1천억원 이상 달성', exp: 15000, stats: { wealth: 100, status: 100 }, performance: 100, targetLevel: 1000, skills: { 'coin-trading-analysis': 50, 'stock-trading-analysis': 50 } }
+            ]
+        };
+
+        // 업적 데이터
+        const achievementData = [
+            { id: 'first-quest', icon: 'fas fa-medal', title: '첫 번째 퀘스트', description: '퀘스트 1개 완료', condition: (user) => Object.values(user.questsCompleted).filter(c => c).length >= 1 },
+            { id: 'exp-100', icon: 'fas fa-star', title: '성장 시작', description: '경험치 100 달성', condition: (user) => user.currentExp >= 100 },
+            { id: 'level-2', icon: 'fas fa-rocket', title: '로켓 성장', description: '레벨 2 달성', condition: (user) => user.currentLevel >= 2 },
+            { id: 'level-5', icon: 'fas fa-gem', title: '성장의 반석', description: '레벨 5 달성', condition: (user) => user.currentLevel >= 5 },
+            { id: 'all-daily-quests', icon: 'fas fa-fire-alt', title: '일일 퀘스트 마스터', description: '모든 일일 퀘스트 완료', condition: (user) => questData.daily.every(q => user.questsCompleted[q.id]) },
+            { id: 'perfect-body', icon: 'fas fa-dumbbell', title: '완벽한 몸매', description: '몸무게 목표 달성 및 외모 스탯 80% 이상', condition: (user) => user.stats.appearance >= 80 },
+            { id: 'financially-free', icon: 'fas fa-feather-alt', title: '경제적 자유', description: '더 이상 돈 걱정 없이 살게 되었습니다.', condition: (user) => user.performanceRate >= 90 },
+            { id: 'married-minju', icon: 'fas fa-ring', title: '내가 사랑하는 여배우와 결혼', description: '평생 사랑을 맹세했습니다!', condition: (user) => user.currentLevel >= 1000 },
+            { id: '100b-networth', icon: 'fas fa-money-bill-wave', title: '1천억대 자산가', description: '순자산 1천억원 이상을 달성했습니다.', condition: (user) => user.currentLevel >= 1000 },
+            { id: 'skill-mastery-wealth', icon: 'fas fa-chart-bar', title: '재력 스킬 마스터', description: '트레이딩 관련 스킬 숙련도 80% 이상 달성', condition: (user) => (user.skills['coin-trading-analysis'] || 0) >= 80 && (user.skills['stock-trading-analysis'] || 0) >= 80 },
+            { id: 'social-butterfly', icon: 'fas fa-handshake', title: '사교의 신', description: '매력과 인맥 스탯 합계 150% 이상', condition: (user) => (user.stats.charm || 0) + (user.stats.connections || 0) >= 150 },
+            { id: 'language-master', icon: 'fas fa-language', title: '언어의 달인', description: '영어 및 일본어 스킬 숙련도 50% 이상', condition: (user) => (user.skills['english'] || 0) >= 50 && (user.skills['japanese'] || 0) >= 50 },
+            { id: 'versatile-chef', icon: 'fas fa-utensils', title: '팔방미인 셰프', description: '요리 스킬 숙련도 50% 이상 달성', condition: (user) => (user.skills['cooking'] || 0) >= 50 },
+            { id: 'mental-fortitude', icon: 'fas fa-brain', title: '정신력 강화', description: '심리학 스킬 숙련도 50% 이상 달성', condition: (user) => (user.skills['psychology'] || 0) >= 50 }
+        ];
+
+        // 레벨에 따른 직업명 반환 함수
+        function getJobTitleByLevel(level) {
+            if (level >= 1000) return '1천억원 트레이더';
+            if (level >= 300) return '일 1천만원 트레이더';
+            if (level >= 100) return '월 1천만원 트레이더';
+            if (level >= 30) return '프로 트레이더';
+            return '트레이더';
+        }
+
+        // UI 업데이트 함수
+        function updateUI() {
+            const expBarFill = document.getElementById('exp-bar-fill');
+            const expText = document.getElementById('exp-text');
+            const levelText = document.getElementById('level-text');
+            const jobTitleText = document.getElementById('job-title-text');
+            
+            const currentJobTitle = getJobTitleByLevel(currentLevel);
+            
+            let expPercentage = (currentExp / expToNextLevel) * 100;
+            if (expPercentage > 100) expPercentage = 100;
+            expBarFill.style.width = `${expPercentage}%`;
+            expText.textContent = `${currentExp} / ${expToNextLevel}`;
+            levelText.textContent = currentLevel;
+            jobTitleText.textContent = currentJobTitle;
+            
+            document.getElementById('stat-wealth-fill').style.width = `${stats.wealth}%`;
+            document.getElementById('stat-appearance-fill').style.width = `${stats.appearance}%`;
+            document.getElementById('stat-charm-fill').style.width = `${stats.charm}%`;
+            document.getElementById('stat-connections-fill').style.width = `${stats.connections}%`;
+            document.getElementById('stat-status-fill').style.width = `${stats.status}%`;
+
+            const circumference = 2 * Math.PI * 15.9155;
+            const progress = (performanceRate / 100) * circumference;
+            document.getElementById('performance-circle-fill').style.strokeDasharray = `${progress}, ${circumference}`;
+            document.getElementById('performance-text').textContent = `${performanceRate}%`;
+
+            // 업적 목록 업데이트
+            const achievementList = document.getElementById('achievement-list');
+            achievementList.innerHTML = '';
+            achievementData.forEach(ach => {
+                const isUnlocked = achievements[ach.id];
+                const itemClass = `card p-4 text-center ${isUnlocked ? '' : 'opacity-40'}`;
+                const html = `
+                    <div class="${itemClass}">
+                        <i class="${ach.icon} text-4xl mb-2 ${isUnlocked ? 'text-white' : 'text-gray-600'}"></i>
+                        <div class="font-medium text-white">${ach.title}</div>
+                        <div class="text-xs text-gray-400 mt-1">${ach.description}</div>
+                    </div>
+                `;
+                achievementList.innerHTML += html;
+            });
+            
+            // 스킬 트리 목록 업데이트
+            const skillTreeList = document.getElementById('skill-tree-list');
+            skillTreeList.innerHTML = '';
+            skillData.forEach(skill => {
+                const skillValue = skills[skill.id] || 0;
+                const html = `
+                    <div class="card p-4">
+                        <div class="font-medium text-white mb-2">${skill.name}</div>
+                        <div class="exp-bar">
+                            <div class="exp-fill h-full" style="width: ${skillValue}%;"></div>
+                        </div>
+                        <span class="text-sm text-gray-400 mt-1 block">${skillValue}% 숙련</span>
+                    </div>
+                `;
+                skillTreeList.innerHTML += html;
+            });
+        }
+        
+        // 이미지 생성 함수
+        async function updateCharacterImage() {
+            const imageEl = document.getElementById('character-image');
+            const spinner = document.getElementById('image-loading-spinner');
+            imageEl.style.display = 'none';
+            spinner.style.display = 'block';
+
+            const jobDescription = getJobTitleByLevel(currentLevel);
+            const prompt = `A digital art portrait of a human character, a young and determined ${jobDescription}, in a modern office environment. The style should be modern and clean, with a simple, solid color background.`;
+            
+            const payload = {
+                instances: { prompt: prompt },
+                parameters: { "sampleCount": 1 }
+            };
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                
+                if (result.predictions && result.predictions.length > 0 && result.predictions[0].bytesBase64Encoded) {
+                    const imageUrl = `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`;
+                    imageEl.src = imageUrl;
+                    imageEl.style.display = 'block';
+                } else {
+                    console.error('Image generation failed:', result);
+                }
+            } catch (e) {
+                console.error('Image generation API call failed:', e);
+            } finally {
+                spinner.style.display = 'none';
+            }
+        }
+
+        // 데이터베이스에 저장
+        async function saveUserData() {
+            if (!userId) return;
+            try {
+                const docRef = doc(db, `/artifacts/${app_id}/users/${userId}/data/user-data`);
+                await setDoc(docRef, {
+                    currentExp,
+                    currentLevel,
+                    questsCompleted: JSON.stringify(questsCompleted),
+                    achievements: JSON.stringify(achievements),
+                    stats: JSON.stringify(stats),
+                    skills: JSON.stringify(skills),
+                    performanceRate,
+                });
+                console.log("데이터 저장 완료");
+            } catch (e) {
+                console.error("데이터 저장 실패:", e);
+            }
+        }
+
+        // 데이터베이스에서 데이터 불러오기
+        async function loadUserData() {
+            if (!userId) return;
+            const docRef = doc(db, `/artifacts/${app_id}/users/${userId}/data/user-data`);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                currentExp = data.currentExp || 0;
+                currentLevel = data.currentLevel || 1;
+                Object.assign(questsCompleted, JSON.parse(data.questsCompleted || '{}'));
+                Object.assign(achievements, JSON.parse(data.achievements || '{}'));
+                Object.assign(stats, JSON.parse(data.stats || '{}'));
+                Object.assign(skills, JSON.parse(data.skills || '{}'));
+                performanceRate = data.performanceRate || 0;
+                updateUI();
+                console.log("데이터 불러오기 완료");
+            } else {
+                console.log("저장된 데이터 없음. 초기 상태 로드.");
+                updateUI();
+            }
+        }
+
+        // 업적 잠금 해제 체크
+        function checkAchievements() {
+            achievementData.forEach(ach => {
+                if (!achievements[ach.id] && ach.condition({ currentExp, currentLevel, questsCompleted, stats, skills, performanceRate })) {
+                    achievements[ach.id] = true;
+                }
+            });
+            saveUserData();
+            updateUI();
+        }
+
+        // 퀘스트 완료 처리
+        window.completeQuest = async function (button, exp, questId, questStats, questPerformance, targetLevel, questSkills) {
+            if (questsCompleted[questId]) {
+                return;
+            }
+            
+            questsCompleted[questId] = true;
+            
+            const questItem = button.closest('.quest-item');
+
+            if (targetLevel) {
+                currentLevel = targetLevel;
+                currentExp = 0; // 레벨 점프 시 경험치 리셋
+            } else {
+                currentExp += exp;
+                if (currentExp >= expToNextLevel) {
+                    currentLevel++;
+                    currentExp = currentExp - expToNextLevel;
+                    showModal();
+                    updateCharacterImage();
+                }
+            }
+
+            // 스탯 업데이트
+            for (const statKey in questStats) {
+                if (stats.hasOwnProperty(statKey)) {
+                    stats[statKey] = Math.min(100, stats[statKey] + questStats[statKey]);
+                }
+            }
+            
+            // 스킬 업데이트
+            for (const skillKey in questSkills) {
+                skills[skillKey] = Math.min(100, (skills[skillKey] || 0) + questSkills[skillKey]);
+            }
+
+            performanceRate = Math.min(100, performanceRate + (questPerformance || 0));
+
+            updateUI();
+            checkAchievements();
+            await saveUserData();
+
+            questItem.style.opacity = 0;
+            questItem.style.transform = 'translateY(-10px)';
+            setTimeout(() => {
+                questItem.remove();
+            }, 500);
+        }
+
+        // 퀘스트 탭 표시
+        window.showQuests = function(category) {
+            const questList = document.getElementById('quest-list');
+            const tabButtons = document.querySelectorAll('.tab-button');
+            
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.tab-button[onclick="showQuests('${category}')"]`).classList.add('active');
+
+            questList.innerHTML = '';
+            const questsForCategory = questData[category] || [];
+            questsForCategory.forEach((quest) => {
+                const questId = quest.id;
+                const isCompleted = questsCompleted[questId];
+                if (!isCompleted) {
+                    const html = `
+                        <div class="card p-4 flex items-center justify-between quest-item">
+                            <div>
+                                <div class="font-medium text-white">${quest.title}</div>
+                                <div class="text-sm text-gray-400">경험치: +${quest.exp} EXP</div>
+                            </div>
+                            <button class="btn-primary text-white px-4 py-2 rounded-xl font-bold" onclick="completeQuest(this, ${quest.exp}, '${questId}', ${JSON.stringify(quest.stats)}, ${quest.performance}, ${quest.targetLevel || null}, ${JSON.stringify(quest.skills || {})})">완료하기</button>
+                        </div>
+                    `;
+                    questList.innerHTML += html;
+                }
+            });
+        }
+        
+        // 모달(알림 팝업) 보이기
+        window.showModal = function() {
+            const modal = document.getElementById('modal');
+            modal.style.display = 'flex';
+        }
+
+        // 모달(알림 팝업) 닫기
+        window.closeModal = function() {
+            const modal = document.getElementById('modal');
+            modal.style.display = 'none';
+        }
+
+        // Firebase 초기화 및 인증
+        async function initFirebase() {
+            if (firebaseConfig && Object.keys(firebaseConfig).length > 0) {
+                try {
+                    const app = initializeApp(firebaseConfig);
+                    auth = getAuth(app);
+                    db = getFirestore(app);
+
+                    onAuthStateChanged(auth, async (user) => {
+                        if (user) {
+                            userId = user.uid;
+                            document.getElementById('userIdDisplay').textContent = `ID: ${userId}`;
+                            console.log("Firebase 로그인 완료:", userId);
+                            await loadUserData();
+                            updateCharacterImage(); // 이미지 초기 로드
+                            showQuests('daily');
+                        } else {
+                            userId = null;
+                            console.log("Firebase 로그아웃 상태.");
+                        }
+                    });
+
+                    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : '';
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+
+                } catch (error) {
+                    console.error("Firebase 초기화 또는 인증 오류:", error);
+                    document.getElementById('userIdDisplay').textContent = '로그인 오류';
+                }
+            } else {
+                console.error("Firebase 설정이 올바르지 않습니다.");
+                document.getElementById('userIdDisplay').textContent = 'Firebase 설정 오류';
+            }
+        }
+
+        // 초기화
+        document.addEventListener('DOMContentLoaded', () => {
+            initFirebase();
+        });
+    </script>
+</body>
+</html>
